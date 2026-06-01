@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>高尔夫18洞成绩统计系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft YaHei", "Segoe UI", sans-serif;
+        }
+
+        body {
+            background-color: #f5f7f6;
+            padding: 30px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 24px;
+            color: #2d5a3e;
+            margin-bottom: 24px;
+            font-weight: 600;
+        }
+
+        /* 输入面板 */
+        .input-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 4px 12px rgba(0, 60, 30, 0.06);
+            margin-bottom: 30px;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid #e0e6e3;
+            border-radius: 10px;
+            font-size: 15px;
+            outline: none;
+            transition: border 0.2s;
+            margin-bottom: 16px;
+        }
+
+        .input-field:focus {
+            border-color: #4a7c59;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: #3c6b4e;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #335c43;
+        }
+
+        /* 全局进度条 */
+        .progress-container {
+            margin-bottom: 20px;
+        }
+
+        .progress-label {
+            font-size: 14px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .progress-bar {
+            height: 8px;
+            width: 100%;
+            background: #e6efea;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #4a7c59;
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        /* 洞卡片 */
+        .hole-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 28px;
+            box-shadow: 0 4px 14px rgba(0, 60, 30, 0.07);
+            margin-bottom: 20px;
+        }
+
+        .hole-title {
+            font-size: 19px;
+            font-weight: 600;
+            color: #2d5a3e;
+            margin-bottom: 24px;
+        }
+
+        .item-row {
+            margin: 16px 0;
+            font-size: 15px;
+            color: #222;
+        }
+
+        /* 按钮样式 */
+        .btn-yes {
+            background: #4a7c59;
+            color: white;
+            border: none;
+            padding: 9px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-right: 8px;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .btn-no {
+            background: #b54c4c;
+            color: white;
+            border: none;
+            padding: 9px 22px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .btn-yes:hover { background: #416b4e; }
+        .btn-no:hover { background: #9c3f3f; }
+
+        .num-input {
+            width: 90px;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin: 6px 0;
+            font-size: 14px;
+        }
+
+        .btn-confirm {
+            background: #3c6b4e;
+            color: #fff;
+            border: none;
+            padding: 9px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 6px;
+            font-size: 14px;
+        }
+
+        /* 答案高亮 */
+        .answer {
+            font-weight: 600;
+            color: #3c6b4e;
+            margin-left: 10px;
+            font-size: 15px;
+        }
+
+        /* 结果卡片 */
+        .result-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 6px 16px rgba(0, 60, 30, 0.08);
+            line-height: 2.1;
+            font-size: 15px;
+        }
+
+        .result-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: #2d5a3e;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .hide {
+            display: none !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1 class="title">⛳ 高尔夫18洞成绩统计系统</h1>
+
+        <!-- 输入区域 -->
+        <div id="step1" class="input-card">
+            <input type="text" class="input-field" id="parText" placeholder="输入18洞杆型，英文逗号分隔（例：4,4,5,4,3...）">
+            <button class="btn-primary" onclick="initGame()">开始录入成绩</button>
+        </div>
+
+        <!-- 计分区域 -->
+        <div id="holeArea" class="hide">
+            <div class="progress-container">
+                <div class="progress-label">当前进度：<span id="progress-text">0/18 洞</span></div>
+                <div class="progress-bar">
+                    <div id="progress-fill" class="progress-fill"></div>
+                </div>
+            </div>
+            <div id="hole-box"></div>
+        </div>
+
+        <!-- 结果区域 -->
+        <div id="resultArea" class="hide result-card">
+            <div class="result-title">统计结果</div>
+            <div id="result-content"></div>
+        </div>
+    </div>
+
+    <script>
+        let parArr = [];
+        let nowHole = 0;
+
+        let driveTotal = 14;
+        let driveSuccess = 0;
+        let girCount = 0;
+        let saveParCount = 0;
+        let totalPutt = 0;
+        let scoreChance = 0;
+        let scoreSuccess = 0;
+
+        let temp;
+        let box;
+
+        // 初始化
+        function initGame() {
+            let str = document.getElementById("parText").value.replace(/，/g, ",").replace(/\s/g, "");
+            parArr = str.split(",").map(Number);
+            if (parArr.length !== 18) {
+                alert("请输入完整18个洞杆型！");
+                return;
+            }
+
+            nowHole = 0;
+            driveSuccess = 0;
+            girCount = 0;
+            saveParCount = 0;
+            totalPutt = 0;
+            scoreChance = 0;
+            scoreSuccess = 0;
+
+            document.getElementById("step1").classList.add("hide");
+            document.getElementById("holeArea").classList.remove("hide");
+            renderHole();
+        }
+
+        // 渲染洞
+        function renderHole() {
+            updateProgress();
+
+            if (nowHole >= 18) {
+                showResult();
+                return;
+            }
+
+            let par = parArr[nowHole];
+            temp = { par, drive: null, gir: null, on: 0, putt: 0, score: false };
+
+            let html = `
+            <div class="hole-card">
+                <div class="hole-title">第${nowHole+1}洞 · 标准杆 ${par} 杆</div>
+                <div id="box"></div>
+            </div>`;
+
+            document.getElementById("hole-box").innerHTML = html;
+            box = document.getElementById("box");
+
+            if (par === 3) {
+                temp.drive = true;
+                step2_gir();
+            } else {
+                step1_drive();
+            }
+        }
+
+        // 更新顶部进度条
+        function updateProgress() {
+            let percent = (nowHole / 18) * 100;
+            document.getElementById("progress-fill").style.width = percent + "%";
+            document.getElementById("progress-text").innerText = nowHole + "/18 洞";
+        }
+
+        // === 步骤1 开球 ===
+        function step1_drive() {
+            box.innerHTML += `
+            <div class="item-row" id="r1">
+                是否开球成功？
+                <button class="btn-yes" onclick="a1(true)">Yes</button>
+                <button class="btn-no" onclick="a1(false)">No</button>
+            </div>`;
+        }
+        function a1(ok) {
+            temp.drive = ok;
+            if (ok) driveSuccess++;
+            document.getElementById("r1").innerHTML += ` <span class="answer">${ok ? "Yes" : "No"}</span>`;
+
+            if (!ok) {
+                step4_onputt();
+                return;
+            }
+            step2_gir();
+        }
+
+        // === 步骤2 标ON ===
+        function step2_gir() {
+            box.innerHTML += `
+            <div class="item-row" id="r2">
+                是否标ON？
+                <button class="btn-yes" onclick="a2(true)">Yes</button>
+                <button class="btn-no" onclick="a2(false)">No</button>
+            </div>`;
+        }
+        function a2(ok) {
+            temp.gir = ok;
+            document.getElementById("r2").innerHTML += ` <span class="answer">${ok ? "Yes" : "No"}</span>`;
+
+            if (ok) {
+                girCount++;
+                if (temp.par === 3) temp.on = 1;
+                if (temp.par === 4) temp.on = 2;
+                if (temp.par === 5) temp.on = 3;
+                step3_score();
+            } else {
+                step4_onputt();
+            }
+        }
+
+        // === 步骤3 得分机会 ===
+        function step3_score() {
+            box.innerHTML += `
+            <div class="item-row" id="r3">
+                是否6码内可得分？
+                <button class="btn-yes" onclick="a3(true)">Yes</button>
+                <button class="btn-no" onclick="a3(false)">No</button>
+            </div>`;
+        }
+        function a3(ok) {
+            temp.score = ok;
+            if (ok) scoreChance++;
+            document.getElementById("r3").innerHTML += ` <span class="answer">${ok ? "Yes" : "No"}</span>`;
+            step5_putt();
+        }
+
+        // === 步骤4 未标ON/开球失败 ===
+        function step4_onputt() {
+            box.innerHTML += `
+            <div class="item-row" id="r4">
+                几on：<input class="num-input" type="number" id="on"><br>
+                几推：<input class="num-input" type="number" id="putt"><br>
+                <button class="btn-confirm" onclick="a4()">确认</button>
+            </div>`;
+        }
+        function a4() {
+            let on = parseInt(document.getElementById("on").value) || 0;
+            let putt = parseInt(document.getElementById("putt").value) || 0;
+            let total = on + putt;
+            totalPutt += putt;
+            if (total === temp.par) saveParCount++;
+            next();
+        }
+
+        // === 步骤5 推杆 ===
+        function step5_putt() {
+            box.innerHTML += `
+            <div class="item-row" id="r5">
+                推杆数：<input class="num-input" type="number" id="putt">
+                <button class="btn-confirm" onclick="a5()">确认</button>
+            </div>`;
+        }
+        function a5() {
+            let p = parseInt(document.getElementById("putt").value) || 0;
+            totalPutt += p;
+            if (temp.score && p === 1) scoreSuccess++;
+            next();
+        }
+
+        // 下一洞
+        function next() {
+            nowHole++;
+            renderHole();
+        }
+
+        // 显示结果
+        function showResult() {
+            updateProgress();
+            document.getElementById("holeArea").classList.add("hide");
+            document.getElementById("resultArea").classList.remove("hide");
+
+            let n = girCount;
+            let m = saveParCount;
+            let x = totalPutt;
+            let y = scoreChance;
+            let z = scoreSuccess;
+
+            let drivePercent = driveTotal > 0 ? ((driveSuccess / driveTotal) * 100).toFixed(1) : 0;
+            let girPercent = (n / 18 * 100).toFixed(1);
+            let savePercent = (18 - n) > 0 ? ((m / (18 - n)) * 100).toFixed(1) : 100;
+            let scorePercent = y > 0 ? ((z / y) * 100).toFixed(1) : 0;
+
+            let html = `
+            1. 开球成功率：${driveSuccess}/${driveTotal}（${drivePercent}%）<br>
+            2. 上果岭率：${n}/18（${girPercent}%）<br>
+            3. 救球率：${m}/${18 - n}（${savePercent}%）<br>
+            4. 推杆总数：${x}<br>
+            5. 得分洞总数：${y}<br>
+            6. 得分转化率：${z}/${y}（${scorePercent}%）`;
+
+            document.getElementById("result-content").innerHTML = html;
+        }
+    </script>
+</body>
+</html>
